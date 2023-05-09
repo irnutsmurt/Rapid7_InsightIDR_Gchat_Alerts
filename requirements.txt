@@ -1,0 +1,4 @@
+requests
+configparser
+httplib2
+pytz
