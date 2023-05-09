@@ -1,0 +1,12 @@
+[Service]
+User=place_service_account_here
+WorkingDirectory=/opt/r7scripts/gchatalert
+ExecStart=/usr/bin/python3 /opt/r7scripts/gchatalert/idrgchat.py
+Restart=always
+RestartSec=30
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=insightidr_alerts
+
+[Install]
+WantedBy=multi-user.target
