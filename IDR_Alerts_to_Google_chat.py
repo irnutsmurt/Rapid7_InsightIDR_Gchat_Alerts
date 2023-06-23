@@ -41,6 +41,9 @@ config.read('config.ini')
 insightidr_api_key = config['insightidr']['api_key']
 region = config['insightidr']['region']
 
+# get priority_levels from config
+priority_levels = config['alerts_field']['priority_levels'].split(',')
+
 # set variable for sent alerts
 sent_alert_rrns_file = 'sent_alert_rrns.txt'
 
@@ -64,8 +67,8 @@ formatted_alerts_file = 'formatted_alerts.json'
 http_obj = Http()
 
 def get_raw_alerts():
-    # get the list of investigations from InsightIDR with High and Critical priority
-    response = requests.get(insightidr_url, headers=insightidr_headers, params={'priority': 'HIGH,CRITICAL'})
+    # get the list of investigations from InsightIDR
+    response = requests.get(insightidr_url, headers=insightidr_headers)
 
     if response.status_code != 200:
         logger.error(f"Failed to get investigations from InsightIDR: {response.reason}")
@@ -73,6 +76,8 @@ def get_raw_alerts():
 
     # parse the response and return the list of investigations
     investigations = response.json()['data']
+    # Filter out the alerts based on priority_levels
+    investigations = [alert for alert in investigations if alert['priority'] in priority_levels]
     return investigations
 
 def format_alerts(alerts):
@@ -81,51 +86,50 @@ def format_alerts(alerts):
     cards = []
     for alert in alerts:
         priority = alert.get('priority')
-        if priority in ['CRITICAL', 'HIGH', 'MEDIUM']:
-            created_time = alert['created_time']
-            title = alert['title']
-            url = alert.get('url', '')  # get the 'url' value, or use an empty string if it's not present
-            message += f"Created Time: {created_time}\n"
-            message += f"Priority: {priority}\n"
-            message += f"Title: {title}\nURL: {url}\n\n"
-            card = {
-                "header": {
-                    "title": title,
-                    "subtitle": f"Created Time: {created_time}"
-                },
-                "sections": [
-                    {
-                        "widgets": [
-                            {
-                                "textParagraph": {
-                                    "text": f"Priority: {priority}"
-                                }
-                            },
-                            {
-                                "buttons": [
-                                    {
-                                        "textButton": {
-                                            "text": "View in IDR",
-                                            "onClick": {
-                                                "openLink": {
-                                                    "url": url
-                                                }
+        created_time = alert['created_time']
+        title = alert['title']
+        url = alert.get('url', '')  # get the 'url' value, or use an empty string if it's not present
+        message += f"Created Time: {created_time}\n"
+        message += f"Priority: {priority}\n"
+        message += f"Title: {title}\nURL: {url}\n\n"
+        card = {
+            "header": {
+                "title": title,
+                "subtitle": f"Created Time: {created_time}"
+            },
+            "sections": [
+                {
+                    "widgets": [
+                        {
+                            "textParagraph": {
+                                "text": f"Priority: {priority}"
+                            }
+                        },
+                        {
+                            "buttons": [
+                                {
+                                    "textButton": {
+                                        "text": "View in IDR",
+                                        "onClick": {
+                                            "openLink": {
+                                                "url": url
                                             }
                                         }
                                     }
-                                ]
-                            }
-                        ]
-                    }
-                ]
-            }
-            cards.append(card)
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+        cards.append(card)
 
     payload = {
         "text": message,
         "cards": cards
     }
-    
+
     return payload, cards
 
 def save_formatted_alerts(payload):
@@ -144,7 +148,7 @@ def send_alerts_to_chat(payload, alert_rrns, sent_alert_rrns):
         method='POST',
         body=json.dumps(payload),
         headers=headers)
-        
+
     if response.status == 200:
         logger.info(f"{len(alert_rrns)} alerts sent successfully to Google Chat")
         # add the RRNs of the sent alerts to the set of already-sent alert RRNs
@@ -154,10 +158,10 @@ def send_alerts_to_chat(payload, alert_rrns, sent_alert_rrns):
             f.writelines([rrn + '\n' for rrn in sent_alert_rrns])
     else:
         logger.error(f"Failed to send alerts to Google Chat: {response.reason}")
-  
+
 def main():
     global sent_alert_rrns_file
-    
+
     # read the RRNs of already-sent alerts from the file, if it exists
     sent_alert_rrns = set()
     sent_alert_rrns_file = 'sent_alert_rrns.txt'
