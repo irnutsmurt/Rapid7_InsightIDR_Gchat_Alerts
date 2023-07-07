@@ -46,6 +46,17 @@ WantedBy=multi-user.target
 
 Replace "place_service_account_here" with the name of the service account you created in Step 4. Replace "/path/to/script/folder" with the path to the folder where you saved the script.
 
+6: Go to home page of InsightIDR and copy the random letters and numbers after
+`https://us2.idr.insight.rapid7.com/op/`
+
+It will look something like 390BEBE96E1D4DE4A51B#
+
+7: Open the script and under the format_alerts function look for
+`url = f"https://us2.idr.insight.rapid7.com/op/"place your companyid here"#/investigations/{id_v1}" if id_v1 else ''`
+
+Replace the "place your companyid here" your companyid. Shoud look like this after
+`url = f"https://us2.idr.insight.rapid7.com/op/390BEBE96E1D4DE4A51B#/investigations/{id_v1}" if id_v1 else ''`
+
 6: Start the service
 Start the service using the following command:
 `sudo systemctl enable insightidr_alerts && sudo systemctl start insightidr_alerts`
