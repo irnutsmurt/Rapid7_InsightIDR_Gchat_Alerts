@@ -142,9 +142,6 @@ priority_levels = config['alerts_field']['priority_levels'].split(',')
 sent_alert_rrns_file = 'sent_alert_rrns.txt'
 
 # set the InsightIDR API endpoint URL
-#pacific = pytz.timezone('US/Pacific')
-#end_time = datetime.now(pacific).strftime('%Y-%m-%dT%H:%M:%SZ') # Current time
-#start_time = (datetime.now(pacific) - timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%SZ') # One hour ago
 now = datetime.utcnow()
 start_time = (now - timedelta(minutes=5)).isoformat() + 'Z'  # 5 minute before now
 end_time = now.isoformat() + 'Z'  # now
@@ -157,7 +154,6 @@ insightidr_headers = {
     'Content-Type': 'application/json',
     'Accept-version': 'investigations-preview'
 }
-
 
 insightidr_url_v1 = f"https://{region}.api.insight.rapid7.com/idr/v1/investigations"
 
@@ -205,7 +201,7 @@ def format_alerts(alerts, alerts_v1):
         rrn = alert.get('rrn')
         matching_alert_v1 = next((a for a in alerts_v1 if a['rrn'] == rrn), None)
         id_v1 = matching_alert_v1['id'] if matching_alert_v1 else ''
-        url = f"https://us2.idr.insight.rapid7.com/op/"place your companyid here"#/investigations/{id_v1}" if id_v1 else ''
+        url = f"https://{region}.idr.insight.rapid7.com/op/"place your companyid here"#/investigations/{id_v1}" if id_v1 else ''
         message += f"Investigation URL: {url}\n"
         message += f"Created Time: {created_time}\n"
         message += f"Priority: {priority}\n"
