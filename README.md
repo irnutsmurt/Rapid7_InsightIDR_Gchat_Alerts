@@ -30,15 +30,15 @@ To use the script, you need to set up a service account with appropriate permiss
 5: Set up the systemd service
 Create a file named "insightidr_alerts.service" in the "/etc/systemd/system/" directory and add the following content to it:
 ```
+[Unit]
+Description=InsightIDR Alerts Service
+After=network.target
+
 [Service]
 User=place_service_account_here
-WorkingDirectory=/path/to/script/folder
-ExecStart=/usr/bin/python3 /path/to/script/folder/IDR_Alerts_to_Google_chat.py
+ExecStart=/usr/bin/python3 /opt/r7scripts/gchatalert/IDR_Alerts_to_Google_chat.py
+WorkingDirectory=/opt/r7scripts/gchatalert
 Restart=always
-RestartSec=30
-StandardOutput=syslog
-StandardError=syslog
-SyslogIdentifier=insightidr_alerts
 
 [Install]
 WantedBy=multi-user.target
@@ -54,11 +54,11 @@ It will look something like 390BEBE96E1D4DE4A51B#
 
 7: Open the script and under the format_alerts function look for
 
-`url = f"https://us2.idr.insight.rapid7.com/op/"place your companyid here"#/investigations/{id_v1}" if id_v1 else ''`
+`url = f"https://{region}.idr.insight.rapid7.com/op/"place your companyid here"#/investigations/{id_v1}" if id_v1 else ''`
 
 Replace the "place your companyid here" your companyid. Shoud look like this after
 
-`url = f"https://us2.idr.insight.rapid7.com/op/390BEBE96E1D4DE4A51B#/investigations/{id_v1}" if id_v1 else ''`
+`url = f"https://{region}.idr.insight.rapid7.com/op/390BEBE96E1D4DE4A51B#/investigations/{id_v1}" if id_v1 else ''`
 
 6: Start the service
 Start the service using the following command:
